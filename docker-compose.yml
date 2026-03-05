@@ -1,0 +1,124 @@
+version: '3.8'
+
+# Multi-container application setup for PubSub Fanout system
+# Runs MongoDB, Redis, Node.js backend, and React frontend
+
+services:
+  # MongoDB - NoSQL database for message and session storage
+  mongodb:
+    image: mongo:5.0
+    container_name: pubsub_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongo_password
+      MONGO_INITDB_DATABASE: pubsub_db
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pubsub_network
+    restart: unless-stopped
+
+  # Redis - In-memory cache and pub/sub broker
+  redis:
+    image: redis:7.0
+    container_name: pubsub_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redis_password
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pubsub_network
+    restart: unless-stopped
+
+  # Backend Node.js server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: pubsub_backend
+    ports:
+      - "5000:5000"
+    environment:
+      # Database configuration
+      MONGO_URI: mongodb://root:mongo_password@mongodb:27017/pubsub_db?authSource=admin
+      MONGO_USER: root
+      MONGO_PASSWORD: mongo_password
+
+      # Redis configuration
+      REDIS_URL: redis://:redis_password@redis:6379
+
+      # Server configuration
+      NODE_ENV: production
+      PORT: 5000
+      HOST: 0.0.0.0
+
+      # CORS configuration
+      CORS_ORIGIN: http://localhost:3000
+
+      # Logging
+      LOG_LEVEL: info
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+    networks:
+      - pubsub_network
+    restart: unless-stopped
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React application
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: pubsub_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:5000
+      REACT_APP_SOCKET_URL: http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - pubsub_network
+    restart: unless-stopped
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volume definitions for persistent data storage
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  redis_data:
+    driver: local
+
+# Network for service communication
+networks:
+  pubsub_network:
+    driver: bridge

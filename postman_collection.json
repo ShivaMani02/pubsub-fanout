@@ -1,0 +1,496 @@
+{
+  "info": {
+    "name": "PubSub Fanout API",
+    "description": "Complete API collection for PubSub Fanout messaging system. Contains all REST endpoints for message publishing, subscription management, session tracking, and system monitoring.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Publish Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Session-ID",
+                "value": "session_xyz",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"orders\",\n  \"message\": {\n    \"orderId\": \"order_123\",\n    \"amount\": 99.99,\n    \"status\": \"pending\"\n  },\n  \"partitionKey\": \"user_456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/messages/publish",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "messages", "publish"]
+            },
+            "description": "Publish a new message to a topic. The message is distributed to all subscribers of that topic."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"topic\": \"orders\",\n  \"message\": {\n    \"orderId\": \"order_123\",\n    \"amount\": 99.99\n  }\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:5000/api/messages/publish",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "messages", "publish"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"messageId\": \"msg_1234567890\",\n  \"topic\": \"orders\",\n  \"fanoutCount\": 5,\n  \"latency\": 23,\n  \"publishedAt\": \"2024-03-05T10:30:45.123Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Message History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/messages/history?topic=orders&limit=20&skip=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "messages", "history"],
+              "query": [
+                {
+                  "key": "topic",
+                  "value": "orders",
+                  "description": "Topic name to query"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Max results (1-100)"
+                },
+                {
+                  "key": "skip",
+                  "value": "0",
+                  "description": "Results to skip for pagination"
+                }
+              ]
+            },
+            "description": "Retrieve message history for a specific topic with pagination support."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/messages/history?topic=orders&limit=20&skip=0",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "messages", "history"],
+                  "query": [
+                    {
+                      "key": "topic",
+                      "value": "orders"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"topic\": \"orders\",\n  \"messages\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"messageId\": \"msg_1234567890\",\n      \"topic\": \"orders\",\n      \"partition\": 2,\n      \"message\": {\n        \"orderId\": \"order_123\",\n        \"amount\": 99.99\n      },\n      \"publisher\": \"session_xyz\",\n      \"fanoutCount\": 5,\n      \"latency\": 23,\n      \"processed\": true,\n      \"createdAt\": \"2024-03-05T10:30:45.123Z\"\n    }\n  ],\n  \"pagination\": {\n    \"limit\": 20,\n    \"skip\": 0,\n    \"total\": 150\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Get All Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/sessions?type=publisher",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "sessions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "publisher",
+                  "description": "Session type: 'publisher', 'subscriber', or null (all)"
+                }
+              ]
+            },
+            "description": "Get all active sessions, optionally filtered by type."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/sessions?type=publisher",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "sessions"],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "publisher"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"count\": 5,\n  \"sessions\": [\n    {\n      \"sessionId\": \"session_xyz123\",\n      \"type\": \"publisher\",\n      \"topics\": [\"orders\"],\n      \"messageCount\": 150,\n      \"isActive\": true\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Session Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/sessions/session_xyz123",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "sessions", "session_xyz123"]
+            },
+            "description": "Get detailed statistics for a specific session."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/sessions/session_xyz123",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "sessions", "session_xyz123"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"session\": {\n    \"sessionId\": \"session_xyz123\",\n    \"type\": \"publisher\",\n    \"messageCount\": 150,\n    \"receivedCount\": 0,\n    \"averageLatency\": 45,\n    \"maxLatency\": 234,\n    \"minLatency\": 12,\n    \"totalBytes\": 125600,\n    \"topics\": [\"orders\", \"notifications\"],\n    \"isActive\": true,\n    \"uptime\": 3600\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Simulation",
+      "item": [
+        {
+          "name": "Start Simulation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"publishers\": 3,\n  \"subscribers\": 15,\n  \"duration\": 60000,\n  \"messageRate\": 10\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/simulation/start",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "simulation", "start"]
+            },
+            "description": "Start a new message simulation with specified parameters."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"publishers\": 3,\n  \"subscribers\": 15,\n  \"duration\": 60000,\n  \"messageRate\": 10\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:5000/api/simulation/start",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "simulation", "start"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"simulationId\": \"sim_abc123def456\",\n  \"publisherCount\": 3,\n  \"subscriberCount\": 15,\n  \"duration\": 60000\n}"
+            }
+          ]
+        },
+        {
+          "name": "Stop Simulation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/simulation/stop/sim_abc123def456",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "simulation", "stop", "sim_abc123def456"]
+            },
+            "description": "Stop a running simulation and get final statistics."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/simulation/stop/sim_abc123def456",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "simulation", "stop", "sim_abc123def456"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"simulationId\": \"sim_abc123def456\",\n  \"messagesSent\": 543\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Simulation Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/simulation/stats/sim_abc123def456",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "simulation", "stats", "sim_abc123def456"]
+            },
+            "description": "Get real-time statistics for a running simulation."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/simulation/stats/sim_abc123def456",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "simulation", "stats", "sim_abc123def456"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"stats\": {\n    \"simulationId\": \"sim_abc123def456\",\n    \"isRunning\": true,\n    \"messagesSent\": 543,\n    \"averageLatency\": 42,\n    \"maxLatency\": 234,\n    \"duration\": 45000,\n    \"publisherCount\": 3,\n    \"subscriberCount\": 15\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "Get Topic Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/stats/topics",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "stats", "topics"]
+            },
+            "description": "Get statistics for all active topics including subscriber count and handler count."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/stats/topics",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "stats", "topics"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"topics\": {\n    \"orders\": {\n      \"topic\": \"orders\",\n      \"subscriberCount\": 8,\n      \"handlerCount\": 8\n    },\n    \"notifications\": {\n      \"topic\": \"notifications\",\n      \"subscriberCount\": 5,\n      \"handlerCount\": 5\n    }\n  },\n  \"totalTopics\": 2\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "health"]
+            },
+            "description": "Check if the server is running and healthy."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:5000/api/health",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "5000",
+                  "path": ["api", "health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"status\": \"Server is running\",\n  \"timestamp\": \"2024-03-05T10:30:45.123Z\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "session_xyz123",
+      "type": "string"
+    },
+    {
+      "key": "simulationId",
+      "value": "sim_abc123def456",
+      "type": "string"
+    }
+  ]
+}
