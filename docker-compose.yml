@@ -1,12 +1,11 @@
-version: '3.8'
-
-# Multi-container application setup for PubSub Fanout system
+# Docker Compose Configuration for PubSub Fanout System
 # Runs MongoDB, Redis, Node.js backend, and React frontend
+# Usage: docker-compose up -d (with Docker Desktop running)
 
 services:
   # MongoDB - NoSQL database for message and session storage
   mongodb:
-    image: mongo:5.0
+    image: mongo:latest
     container_name: pubsub_mongodb
     ports:
       - "27017:27017"
@@ -18,17 +17,18 @@ services:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - pubsub_network
     restart: unless-stopped
 
   # Redis - In-memory cache and pub/sub broker
   redis:
-    image: redis:7.0
+    image: redis:latest
     container_name: pubsub_redis
     ports:
       - "6379:6379"
@@ -36,10 +36,11 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: redis-cli ping
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - pubsub_network
     restart: unless-stopped
