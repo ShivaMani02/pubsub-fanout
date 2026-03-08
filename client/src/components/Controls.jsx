@@ -1,11 +1,10 @@
 // Controls.jsx - Simulation control component
-// Handles starting/stopping simulations and configuration
+// Handles starting/stopping simulations with high-premium UI feedback
 
 import React, { useState } from 'react';
 import * as api from '../services/api';
 
 const Controls = ({ simState, setSimState }) => {
-  // State for simulation configuration
   const [config, setConfig] = useState({
     publishers: 3,
     subscribers: 10,
@@ -16,66 +15,54 @@ const Controls = ({ simState, setSimState }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [feedback, setFeedback] = useState('');
 
-  /**
-   * Start simulation
-   */
   const handleStartSimulation = async () => {
     try {
-      setFeedback('Starting simulation...');
+      setFeedback('⚙️ Initializing Cluster...');
       const result = await api.startSimulation(config);
 
       if (result.success) {
         setIsRunning(true);
-        setFeedback(`✓ Simulation started (ID: ${result.simulationId})`);
+        setFeedback(`✓ Simulation Active (${result.simulationId})`);
         setSimState(prev => ({
           ...prev,
           isRunning: true,
           simulationId: result.simulationId
         }));
 
-        // Auto-stop after duration
         setTimeout(() => {
           handleStopSimulation();
         }, config.duration);
       }
     } catch (error) {
-      setFeedback(`✗ Error: ${error.message}`);
+      setFeedback(`✗ Fault: ${error.message}`);
     }
   };
 
-  /**
-   * Stop simulation
-   */
   const handleStopSimulation = async () => {
     try {
-      if (!simState.simulationId) {
-        setFeedback('No active simulation');
-        return;
-      }
-
-      setFeedback('Stopping simulation...');
+      if (!simState.simulationId) return;
+      setFeedback('⏹️ Halting Services...');
       const result = await api.stopSimulation(simState.simulationId);
 
       if (result.success) {
         setIsRunning(false);
-        setFeedback(`✓ Simulation stopped`);
-        setSimState(prev => ({
-          ...prev,
-          isRunning: false
-        }));
+        setFeedback('✓ Cluster Idle');
+        setSimState(prev => ({ ...prev, isRunning: false }));
       }
     } catch (error) {
-      setFeedback(`✗ Error: ${error.message}`);
+      setFeedback(`✗ Fault: ${error.message}`);
     }
   };
 
   return (
     <div className="panel">
-      <div className="panel-title">⚙️ Simulation Controls</div>
+      <div className="panel-title">
+        <span style={{ fontSize: '18px' }}>⚙️</span>
+        CLUSTER MANAGEMENT
+      </div>
 
-      {/* Configuration inputs */}
-      <div style={{ marginBottom: '15px' }}>
-        <label>Publishers</label>
+      <div className="form-group" style={{ marginBottom: '20px' }}>
+        <label>Active Publishers</label>
         <input
           type="number"
           min="1"
@@ -85,7 +72,7 @@ const Controls = ({ simState, setSimState }) => {
           disabled={isRunning}
         />
 
-        <label>Subscribers</label>
+        <label>Subscriber Nodes</label>
         <input
           type="number"
           min="1"
@@ -95,59 +82,69 @@ const Controls = ({ simState, setSimState }) => {
           disabled={isRunning}
         />
 
-        <label>Duration (ms)</label>
-        <input
-          type="number"
-          min="5000"
-          max="600000"
-          value={config.duration}
-          onChange={(e) => setConfig({ ...config, duration: parseInt(e.target.value) })}
-          disabled={isRunning}
-        />
-
-        <label>Message Rate (msg/s)</label>
-        <input
-          type="number"
-          min="1"
-          max="100"
-          value={config.messageRate}
-          onChange={(e) => setConfig({ ...config, messageRate: parseInt(e.target.value) })}
-          disabled={isRunning}
-        />
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ flex: 1 }}>
+            <label>Duration (ms)</label>
+            <input
+              type="number"
+              value={config.duration}
+              onChange={(e) => setConfig({ ...config, duration: parseInt(e.target.value) })}
+              disabled={isRunning}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label>Rate (msg/s)</label>
+            <input
+              type="number"
+              value={config.messageRate}
+              onChange={(e) => setConfig({ ...config, messageRate: parseInt(e.target.value) })}
+              disabled={isRunning}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
         <button
           onClick={handleStartSimulation}
           disabled={isRunning}
-          style={{ flex: 1 }}
+          style={{ flex: 1.5 }}
         >
-          ▶️ Start Simulation
+          ▶️ DEPLOY CLUSTER
         </button>
         <button
           onClick={handleStopSimulation}
           disabled={!isRunning}
-          style={{ flex: 1, background: '#dc3545' }}
+          className="danger"
+          style={{ flex: 1 }}
         >
-          ⏹️ Stop Simulation
+          ⏹️ HALT
         </button>
       </div>
 
-      {/* Feedback message */}
+      <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Status</span>
+        <span className={`badge ${isRunning ? 'badge-success' : 'badge-danger'}`}>
+          {isRunning ? '● ACTIVE' : '○ IDLE'}
+        </span>
+      </div>
+
       {feedback && (
-        <div className={`message ${feedback.includes('✗') ? 'message-error' : 'message-success'}`}>
+        <div
+          className="feedback-pill"
+          style={{
+            marginTop: '12px',
+            fontSize: '11px',
+            padding: '8px 12px',
+            background: 'rgba(0,0,0,0.3)',
+            borderRadius: '8px',
+            color: feedback.includes('✗') ? 'var(--danger)' : 'var(--success)',
+            textAlign: 'center'
+          }}
+        >
           {feedback}
         </div>
       )}
-
-      {/* Status indicator */}
-      <div style={{ padding: '10px', background: '#f0f4ff', borderRadius: '6px', textAlign: 'center' }}>
-        <span style={{ marginRight: '8px' }}>Status:</span>
-        <span className={`badge ${isRunning ? 'badge-success' : 'badge-danger'}`}>
-          {isRunning ? '🟢 Running' : '🔴 Stopped'}
-        </span>
-      </div>
     </div>
   );
 };
