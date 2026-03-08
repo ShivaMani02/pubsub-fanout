@@ -1,44 +1,49 @@
 // Dashboard.jsx - Main dashboard page component
-// Displays all monitoring panels and controls
+// Displays all monitoring panels and controls in a premium grid layout
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Controls from '../components/Controls';
 import StatsBar from '../components/StatsBar';
 import EventLog from '../components/EventLog';
 import FanoutCanvas from '../components/FanoutCanvas';
 import LatencyChart from '../components/LatencyChart';
 import PublisherPanel from '../components/PublisherPanel';
-import PartitionHeatmap from '../components/PartitionHeatmap';
 
 const Dashboard = ({ simState, setSimState }) => {
-  // State for UI
-  const [activeTab, setActiveTab] = useState('overview');
-
   return (
     <div className="main-content">
-      {/* Left Panel - Controls and Publisher */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Left Column: Management */}
+      <div className="column" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <Controls simState={simState} setSimState={setSimState} />
         <PublisherPanel simState={simState} />
       </div>
 
-      {/* Center Panel - Visualization and Logs */}
-      <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Center Column: Visualization & High-level Stats */}
+      <div className="column" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <StatsBar simState={simState} />
-        <div className="panel" style={{ flex: 1, minHeight: 0 }}>
-          <div className="panel-title">📊 Message Flow Visualization</div>
+        <div className="panel visual-panel" style={{ flex: 1 }}>
+          <div className="panel-title">
+            <span style={{ fontSize: '18px' }}>📡</span>
+            REAL-TIME FANOUT VISUALIZATION
+          </div>
           <FanoutCanvas simState={simState} />
         </div>
       </div>
 
-      {/* Right Panel - Charts and Logs */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="panel" style={{ flex: 1, minHeight: 0 }}>
-          <div className="panel-title">📈 Latency Analysis</div>
+      {/* Right Column: Analytics & Logs */}
+      <div className="column" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="panel" style={{ flex: 0.6 }}>
+          <div className="panel-title">
+            <span style={{ fontSize: '18px' }}>📈</span>
+            LATENCY ANALYSIS
+          </div>
           <LatencyChart simState={simState} />
         </div>
-        <div className="panel" style={{ flex: 1, minHeight: 0 }}>
-          <div className="panel-title">📋 Event Log</div>
+        <div className="panel" style={{ flex: 1.4 }}>
+          <div className="panel-title">
+            <span style={{ fontSize: '18px' }}>📋</span>
+            SYSTEM EVENT LOG
+          </div>
           <EventLog simState={simState} />
         </div>
       </div>
